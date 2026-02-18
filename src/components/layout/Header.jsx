@@ -42,7 +42,7 @@ export default function Header() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-primary leading-tight">NIRF Compass</h1>
-              <p className="text-xs text-gray-500 leading-tight">AI-Powered University Improvement System</p>
+              <p className="text-xs text-gray-500 leading-tight">University Improvement System</p>
             </div>
           </Link>
           
