@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Compass, Menu, X, User, LogOut } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import LoginModal from '@/components/common/LoginModal';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const location = useLocation();
   
   const navigation = [
@@ -18,8 +21,14 @@ export default function Header() {
   
   const isActive = (path) => location.pathname === path;
   
+  const handleLogin = (email) => {
+    setUserEmail(email);
+    setIsAuthenticated(true);
+  };
+  
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setUserEmail('');
   };
   
   return (
@@ -59,10 +68,10 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-3">
             {isAuthenticated ? (
               <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg">
-                  <User className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700">User</span>
-                </div>
+                <button className="flex items-center space-x-2 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">{userEmail || 'User'}</span>
+                </button>
                 <button
                   onClick={handleLogout}
                   className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -73,7 +82,7 @@ export default function Header() {
               </div>
             ) : (
               <button
-                onClick={() => setIsAuthenticated(true)}
+                onClick={() => setShowLoginModal(true)}
                 className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors"
               >
                 Login
@@ -125,7 +134,7 @@ export default function Header() {
                 </button>
               ) : (
                 <button
-                  onClick={() => setIsAuthenticated(true)}
+                  onClick={() => setShowLoginModal(true)}
                   className="w-full px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors"
                 >
                   Login
@@ -135,6 +144,13 @@ export default function Header() {
           </div>
         )}
       </nav>
+      
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={handleLogin}
+      />
     </header>
   );
 }
