@@ -36,7 +36,6 @@ export default function ReportPage() {
     { icon: CheckCircle, title: 'Parameter-Wise Gap Analysis', desc: 'Detailed benchmark comparison' },
     { icon: CheckCircle, title: 'Detailed Recommendations', desc: 'Strategic action steps with timelines' },
     { icon: CheckCircle, title: 'Strategic Roadmap', desc: 'Phased implementation plan' },
-    { icon: CheckCircle, title: 'SWOT Analysis', desc: 'Comprehensive strengths, weaknesses, opportunities, threats' },
     { icon: CheckCircle, title: 'Final Consultant Remarks', desc: 'Professional assessment and guidance' },
   ];
   
@@ -157,43 +156,6 @@ export default function ReportPage() {
         </div>
       </div>
       
-      {/* SWOT Preview */}
-      <div className="card mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          SWOT Analysis (Included in Report)
-        </h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Comprehensive SWOT analysis is included in the downloadable report
-        </p>
-        
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <h3 className="font-semibold text-green-900 mb-2 text-sm">Strengths</h3>
-            <p className="text-xs text-green-700">
-              {report.swotAnalysis.strengths.length} key strengths identified
-            </p>
-          </div>
-          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-            <h3 className="font-semibold text-red-900 mb-2 text-sm">Weaknesses</h3>
-            <p className="text-xs text-red-700">
-              {report.swotAnalysis.weaknesses.length} areas for improvement
-            </p>
-          </div>
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-900 mb-2 text-sm">Opportunities</h3>
-            <p className="text-xs text-blue-700">
-              {report.swotAnalysis.opportunities.length} strategic opportunities
-            </p>
-          </div>
-          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-            <h3 className="font-semibold text-yellow-900 mb-2 text-sm">Threats</h3>
-            <p className="text-xs text-yellow-700">
-              {report.swotAnalysis.threats.length} potential challenges
-            </p>
-          </div>
-        </div>
-      </div>
-      
       {/* Download Button */}
       <div className="text-center">
         <button
@@ -204,7 +166,7 @@ export default function ReportPage() {
           <span>Download Strategic Improvement Report (PDF)</span>
         </button>
         <p className="text-sm text-gray-500 mt-4">
-          Professional PDF report with complete analysis and SWOT
+          Professional PDF report with complete analysis and recommendations
         </p>
       </div>
     </div>

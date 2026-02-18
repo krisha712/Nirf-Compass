@@ -9,7 +9,6 @@ export const generateReport = (analysisData) => {
     day: 'numeric',
   });
   
-  const swotAnalysis = generateSWOT(parameters);
   const roadmap = generateRoadmap(parameters);
   
   return {
@@ -24,7 +23,6 @@ export const generateReport = (analysisData) => {
     gapAnalysis: generateGapAnalysis(parameters),
     recommendations: generateRecommendations(parameters),
     roadmap,
-    swotAnalysis,
     finalRemarks: generateFinalRemarks(parameters),
   };
 };
@@ -95,38 +93,6 @@ const generateRoadmap = (parameters) => {
         actions: ['Maintain excellence standards', 'Benchmark against global institutions', 'Lead innovation initiatives'],
       })),
     },
-  };
-};
-
-const generateSWOT = (parameters) => {
-  const strong = parameters.filter(p => p.score >= 75);
-  const weak = parameters.filter(p => p.score < 60);
-  
-  return {
-    strengths: [
-      ...strong.map(p => `Strong performance in ${p.name} (${p.score}/100)`),
-      'Established institutional framework',
-      'Committed faculty and staff',
-    ],
-    weaknesses: [
-      ...weak.map(p => `Below-benchmark performance in ${p.name} (${p.score}/100)`),
-      'Resource allocation inefficiencies',
-      'Limited stakeholder engagement',
-    ],
-    opportunities: [
-      'Government funding initiatives for higher education',
-      'Industry collaboration potential',
-      'Digital transformation in education',
-      'Growing demand for quality education',
-      'International partnership possibilities',
-    ],
-    threats: [
-      'Increasing competition from peer institutions',
-      'Changing regulatory landscape',
-      'Faculty retention challenges',
-      'Rapid technological changes',
-      'Economic uncertainties affecting funding',
-    ],
   };
 };
 

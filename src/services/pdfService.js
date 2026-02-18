@@ -172,38 +172,6 @@ export const generatePDFReport = (report) => {
     yPosition += 5;
   });
   
-  // ===== SWOT ANALYSIS =====
-  doc.addPage();
-  yPosition = margin;
-  
-  addText('SWOT ANALYSIS', 18, true, [30, 58, 138]);
-  addDivider();
-  
-  addText('STRENGTHS', 12, true, [34, 139, 34]);
-  report.swotAnalysis.strengths.forEach((item) => {
-    addText(`• ${item}`, 10);
-  });
-  yPosition += 5;
-  
-  addText('WEAKNESSES', 12, true, [220, 38, 38]);
-  report.swotAnalysis.weaknesses.forEach((item) => {
-    addText(`• ${item}`, 10);
-  });
-  yPosition += 5;
-  
-  checkPageBreak(60);
-  addText('OPPORTUNITIES', 12, true, [37, 99, 235]);
-  report.swotAnalysis.opportunities.forEach((item) => {
-    addText(`• ${item}`, 10);
-  });
-  yPosition += 5;
-  
-  checkPageBreak(60);
-  addText('THREATS', 12, true, [234, 179, 8]);
-  report.swotAnalysis.threats.forEach((item) => {
-    addText(`• ${item}`, 10);
-  });
-  
   // ===== FINAL REMARKS =====
   doc.addPage();
   yPosition = margin;
