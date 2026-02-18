@@ -26,14 +26,14 @@ export default function ContactPage() {
     {
       icon: Mail,
       title: 'Email',
-      content: 'nirfcompass@cspit.edu',
-      link: 'mailto:nirfcompass@cspit.edu',
+      content: 'krisha7122006@gmail.com',
+      link: 'mailto:krisha7122006@gmail.com',
     },
     {
       icon: Phone,
       title: 'Phone',
-      content: '+91 (0) 2697-247000',
-      link: 'tel:+912697247000',
+      content: '+91 7016940297',
+      link: 'tel:+917016940297',
     },
     {
       icon: MapPin,
