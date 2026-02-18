@@ -9,7 +9,7 @@ export default function Footer() {
       title: 'About Platform',
       content: (
         <p className="text-sm text-gray-600 leading-relaxed">
-          NIRF Compass is an AI-powered strategic decision-support system designed to help 
+          NIRF Compass is a strategic decision-support system designed to help 
           universities improve their NIRF ranking performance through structured analysis 
           and actionable recommendations.
         </p>
