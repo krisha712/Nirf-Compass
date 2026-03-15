@@ -5,10 +5,14 @@ import { toast } from 'react-toastify';
 import { Search, Calendar } from 'lucide-react';
 import { useAnalysisStore } from '@/store/analysisStore';
 import { useHistoryStore } from '@/store/historyStore';
-import { analyzeUniversity } from '@/services/nirfService';
+import { useAuthStore } from '@/store/authStore';
+import { analyzeUniversity, getPeerComparisons } from '@/services/nirfService';
 import LoadingAnalysis from '@/components/LoadingAnalysis';
 import ScoreCard from '@/components/ScoreCard';
 import ParameterAccordion from '@/components/ParameterAccordion';
+import PeerComparisonTable from '@/components/PeerComparisonTable';
+import RankSimulator from '@/components/RankSimulator';
+import SimilarityFinder from '@/components/SimilarityFinder';
 
 export default function AnalysisPage() {
   const navigate = useNavigate();
@@ -24,6 +28,7 @@ export default function AnalysisPage() {
   } = useAnalysisStore();
   
   const { addToHistory } = useHistoryStore();
+  const { userEmail } = useAuthStore();
   
   const onSubmit = async (data) => {
     try {
@@ -32,7 +37,7 @@ export default function AnalysisPage() {
       
       const result = await analyzeUniversity(data.universityName);
       setAnalysisData(result);
-      addToHistory(result); // Save to history
+      addToHistory(result, userEmail); // Save to history scoped to user
       setShowResults(true);
       
       toast.success('Analysis completed successfully!');
@@ -132,6 +137,18 @@ export default function AnalysisPage() {
             </div>
           </section>
           
+          {/* Peer Comparison */}
+          <PeerComparisonTable
+            peers={getPeerComparisons(analysisData.universityName)}
+            selectedName={analysisData.universityName}
+          />
+
+          {/* Rank Improvement Simulator */}
+          <RankSimulator analysisData={analysisData} />
+
+          {/* Similarity Finder */}
+          <SimilarityFinder analysisData={analysisData} />
+
           {/* Strategic Analysis */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">

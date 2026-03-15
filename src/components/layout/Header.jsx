@@ -3,14 +3,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { Compass, Menu, X, User, LogOut } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import LoginModal from '@/components/common/LoginModal';
+import { useAuthStore } from '@/store/authStore';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const location = useLocation();
-  
+
+  const { isAuthenticated, userEmail, login, logout } = useAuthStore();
+
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Analyze', href: '/analysis' },
@@ -18,18 +19,11 @@ export default function Header() {
     { name: 'About Us', href: '/about' },
     { name: 'Contact Us', href: '/contact' },
   ];
-  
+
   const isActive = (path) => location.pathname === path;
-  
-  const handleLogin = (email) => {
-    setUserEmail(email);
-    setIsAuthenticated(true);
-  };
-  
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserEmail('');
-  };
+
+  const handleLogin = (email) => login(email);
+  const handleLogout = () => logout();
   
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">

@@ -1,16 +1,20 @@
 import { useNavigate } from 'react-router-dom';
 import { useHistoryStore } from '@/store/historyStore';
+import { useAuthStore } from '@/store/authStore';
 import { useAnalysisStore } from '@/store/analysisStore';
 import { generateReport } from '@/services/reportService';
 import { generatePDFReport } from '@/services/pdfService';
-import { Calendar, Download, Eye, Trash2, FileText } from 'lucide-react';
+import { Calendar, Download, Eye, Trash2, FileText, User } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 
 export default function SearchHistoryPage() {
   const navigate = useNavigate();
-  const { history, removeHistoryItem, clearHistory } = useHistoryStore();
+  const { getUserHistory, removeHistoryItem, clearUserHistory } = useHistoryStore();
+  const { userEmail, isAuthenticated } = useAuthStore();
   const { setAnalysisData } = useAnalysisStore();
+
+  const history = getUserHistory(userEmail);
   
   const handleViewAnalysis = (item) => {
     setAnalysisData(item.data);
@@ -25,13 +29,13 @@ export default function SearchHistoryPage() {
   };
   
   const handleDelete = (id, universityName) => {
-    removeHistoryItem(id);
+    removeHistoryItem(id, userEmail);
     toast.success(`Removed ${universityName} from history`);
   };
-  
+
   const handleClearAll = () => {
     if (window.confirm('Are you sure you want to clear all history?')) {
-      clearHistory();
+      clearUserHistory(userEmail);
       toast.success('History cleared successfully');
     }
   };
@@ -48,15 +52,32 @@ export default function SearchHistoryPage() {
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Not logged in guard */}
+      {!isAuthenticated && (
+        <div className="text-center py-20">
+          <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-10 h-10 text-gray-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Login Required</h2>
+          <p className="text-gray-600 mb-6">Please login to view your search history.</p>
+          <button onClick={() => navigate('/')} className="btn-primary">Go to Home</button>
+        </div>
+      )}
+
+      {isAuthenticated && (
+        <>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Search History</h1>
           <p className="text-gray-600">
             {history.length} {history.length === 1 ? 'analysis' : 'analyses'} saved
+            <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+              {userEmail}
+            </span>
           </p>
         </div>
-        
+
         {history.length > 0 && (
           <button
             onClick={handleClearAll}
@@ -191,6 +212,8 @@ export default function SearchHistoryPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

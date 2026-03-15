@@ -4,39 +4,59 @@ import { persist } from 'zustand/middleware';
 export const useHistoryStore = create(
   persist(
     (set, get) => ({
-      // State
-      history: [],
-      
-      // Actions
-      addToHistory: (analysisData) => {
+      // history is stored as { [userId]: historyItem[] }
+      history: {},
+
+      addToHistory: (analysisData, userId) => {
+        if (!userId) return;
         const historyItem = {
           id: Date.now(),
+          userId,
           universityName: analysisData.universityName,
           timestamp: analysisData.timestamp,
           date: new Date().toISOString(),
           status: 'Report Generated',
           data: analysisData,
         };
-        
         set((state) => ({
-          history: [historyItem, ...state.history],
+          history: {
+            ...state.history,
+            [userId]: [historyItem, ...(state.history[userId] || [])],
+          },
         }));
       },
-      
-      getHistoryItem: (id) => {
-        return get().history.find((item) => item.id === id);
+
+      // Returns history for a specific user
+      getUserHistory: (userId) => {
+        if (!userId) return [];
+        return get().history[userId] || [];
       },
-      
-      clearHistory: () => set({ history: [] }),
-      
-      removeHistoryItem: (id) => {
+
+      removeHistoryItem: (id, userId) => {
+        if (!userId) return;
         set((state) => ({
-          history: state.history.filter((item) => item.id !== id),
+          history: {
+            ...state.history,
+            [userId]: (state.history[userId] || []).filter((item) => item.id !== id),
+          },
         }));
+      },
+
+      clearUserHistory: (userId) => {
+        if (!userId) return;
+        set((state) => ({
+          history: {
+            ...state.history,
+            [userId]: [],
+          },
+        }));
+      },
+
+      getHistoryItem: (id, userId) => {
+        const userHistory = get().history[userId] || [];
+        return userHistory.find((item) => item.id === id);
       },
     }),
-    {
-      name: 'nirf-compass-history',
-    }
+    { name: 'nirf-compass-history' }
   )
 );

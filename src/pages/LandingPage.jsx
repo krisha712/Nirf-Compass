@@ -1,29 +1,23 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Target, FileText } from 'lucide-react';
+import { ArrowRight, Sparkles, Target, FileText, LogIn, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuthStore } from '@/store/authStore';
+import LoginModal from '@/components/common/LoginModal';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  
+  const { isAuthenticated, login } = useAuthStore();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
   const features = [
-    {
-      icon: Sparkles,
-      title: 'AI-Powered Analysis',
-      description: 'Automated score generation and intelligent assessment',
-    },
-    {
-      icon: Target,
-      title: 'Strategic Insights',
-      description: 'Data-driven recommendations for ranking improvement',
-    },
-    {
-      icon: FileText,
-      title: 'Professional Reports',
-      description: 'Comprehensive improvement strategy documentation',
-    },
+    { icon: Sparkles, title: 'AI-Powered Analysis',   description: 'Automated score generation and intelligent assessment' },
+    { icon: Target,   title: 'Strategic Insights',    description: 'Data-driven recommendations for ranking improvement' },
+    { icon: FileText, title: 'Professional Reports',  description: 'Comprehensive improvement strategy documentation' },
   ];
-  
+
   return (
+    <>
     <div className="min-h-[calc(100vh-4rem)]">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary via-primary-dark to-accent py-20">
@@ -34,23 +28,45 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              NIRF Compass
-            </h1>
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">NIRF Compass</h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-4">
               AI-Powered University Ranking Improvement System
             </p>
             <p className="text-lg text-blue-200 mb-10 max-w-3xl mx-auto">
-              Enter your university name and let our AI analyze performance across all NIRF parameters, 
+              Enter your university name and let our AI analyze performance across all NIRF parameters,
               identify gaps, and generate a comprehensive strategic improvement plan.
             </p>
-            <button
-              onClick={() => navigate('/analysis')}
-              className="btn-primary inline-flex items-center space-x-2 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
-            >
-              <span>Start Analysis</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
+
+            {isAuthenticated ? (
+              /* ── Logged in: show Start Analysis ── */
+              <button
+                onClick={() => navigate('/analysis')}
+                className="btn-primary inline-flex items-center space-x-2 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+              >
+                <span>Start Analysis</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            ) : (
+              /* ── Not logged in: login gate ── */
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex flex-col items-center gap-4"
+              >
+                <div className="flex items-center gap-2 bg-white/10 border border-white/20 text-white text-sm px-4 py-2 rounded-full backdrop-blur-sm">
+                  <Lock className="w-4 h-4" />
+                  Please login to start your university analysis
+                </div>
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="inline-flex items-center space-x-2 text-lg px-8 py-4 bg-white text-primary font-semibold rounded-xl shadow-xl hover:shadow-2xl hover:bg-blue-50 transform hover:scale-105 transition-all"
+                >
+                  <LogIn className="w-5 h-5" />
+                  <span>Login to Continue</span>
+                </button>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -116,5 +132,12 @@ export default function LandingPage() {
         </div>
       </section>
     </div>
+
+    <LoginModal
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      onLogin={(email) => { login(email); setShowLoginModal(false); }}
+    />
+    </>
   );
 }
