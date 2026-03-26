@@ -1,16 +1,11 @@
-// Report Generation Service
-// Generates professional improvement reports
+// Report Generation Service – works with backend-mapped analysisData
 
 export const generateReport = (analysisData) => {
   const { universityName, timestamp, parameters } = analysisData;
   const date = new Date(timestamp).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    year: 'numeric', month: 'long', day: 'numeric',
   });
-  
-  const roadmap = generateRoadmap(parameters);
-  
+
   return {
     coverPage: {
       title: 'Strategic Improvement Report',
@@ -22,16 +17,24 @@ export const generateReport = (analysisData) => {
     scores: parameters,
     gapAnalysis: generateGapAnalysis(parameters),
     recommendations: generateRecommendations(parameters),
-    roadmap,
+    roadmap: generateRoadmap(parameters),
     finalRemarks: generateFinalRemarks(parameters),
   };
+};
+
+const getPerformanceLevel = (score) =>
+  score >= 80 ? 'Strong' : score >= 60 ? 'Moderate' : 'Needs Improvement';
+
+const getAssessment = (param) => {
+  if (param.gap > 0) return `Gap of ${param.gap} points vs peer average of ${param.score + param.gap}.`;
+  return `Performing at or above peer average.`;
 };
 
 const generateExecutiveSummary = (parameters) => {
   const avgScore = parameters.reduce((sum, p) => sum + p.score, 0) / parameters.length;
   const criticalAreas = parameters.filter(p => p.score < 60);
   const strongAreas = parameters.filter(p => p.score >= 80);
-  
+
   return {
     overallPerformance: avgScore >= 75 ? 'Strong' : avgScore >= 60 ? 'Moderate' : 'Needs Improvement',
     averageScore: Math.round(avgScore),
@@ -46,44 +49,47 @@ const generateGapAnalysis = (parameters) => {
     parameter: param.name,
     currentScore: param.score,
     benchmarkScore: 90,
-    gap: 90 - param.score,
+    gap: Math.round(90 - param.score),
     gapPercentage: Math.round(((90 - param.score) / 90) * 100),
-    analysis: param.benchmarkGap,
+    analysis: getAssessment(param),
   }));
 };
 
 const generateRecommendations = (parameters) => {
   return parameters.map(param => ({
     parameter: param.name,
-    priority: param.priority,
-    riskLevel: param.riskLevel,
-    actions: param.actionSteps,
+    priority: param.score < 60 ? 'High' : param.score < 75 ? 'Medium' : 'Low',
+    riskLevel: param.score < 60 ? 'Critical' : param.score < 75 ? 'Moderate' : 'Low',
+    actions: param.recommendations && param.recommendations.length > 0
+      ? param.recommendations
+      : ['Review current practices', 'Benchmark against top institutions', 'Develop targeted improvement plan'],
     timeline: param.score < 60 ? '0-6 months' : param.score < 75 ? '6-12 months' : '12-18 months',
-    expectedImpact: param.expectedOutcome,
+    expectedImpact: `Improve ${param.name} score by 5-10 points within the timeline.`,
   }));
 };
 
 const generateRoadmap = (parameters) => {
-  const immediate = parameters.filter(p => p.score < 60);
-  const structural = parameters.filter(p => p.score >= 60 && p.score < 75);
-  const strategic = parameters.filter(p => p.score >= 75);
-  
+  const immediate   = parameters.filter(p => p.score < 60);
+  const structural  = parameters.filter(p => p.score >= 60 && p.score < 75);
+  const strategic   = parameters.filter(p => p.score >= 75);
+
+  const toPhaseParam = (p) => ({
+    name: p.name,
+    actions: p.recommendations && p.recommendations.length > 0
+      ? p.recommendations
+      : ['Develop improvement plan', 'Allocate resources', 'Monitor progress'],
+  });
+
   return {
     phase1: {
       title: 'Immediate Actions (0-6 months)',
       focus: 'Critical Gap Resolution',
-      parameters: immediate.map(p => ({
-        name: p.name,
-        actions: p.actionSteps,
-      })),
+      parameters: immediate.map(toPhaseParam),
     },
     phase2: {
       title: 'Structural Improvements (6-18 months)',
       focus: 'Systematic Enhancement',
-      parameters: structural.map(p => ({
-        name: p.name,
-        actions: p.actionSteps,
-      })),
+      parameters: structural.map(toPhaseParam),
     },
     phase3: {
       title: 'Strategic Positioning (18+ months)',
@@ -98,142 +104,12 @@ const generateRoadmap = (parameters) => {
 
 const generateFinalRemarks = (parameters) => {
   const avgScore = parameters.reduce((sum, p) => sum + p.score, 0) / parameters.length;
-  
+
   if (avgScore >= 80) {
-    return 'The institution demonstrates strong performance across NIRF parameters. Focus should be on maintaining excellence and pursuing leadership in emerging areas. Strategic investments in innovation and global partnerships will further strengthen the institutional position.';
+    return 'The institution demonstrates strong performance across NIRF parameters. Focus should be on maintaining excellence and pursuing leadership in emerging areas.';
   } else if (avgScore >= 65) {
-    return 'The institution shows solid foundation with clear improvement pathways. Systematic implementation of recommended actions will significantly enhance NIRF ranking. Priority should be given to addressing identified gaps while leveraging existing strengths.';
+    return 'The institution shows a solid foundation with clear improvement pathways. Systematic implementation of recommended actions will significantly enhance NIRF ranking.';
   } else {
-    return 'The institution requires comprehensive strategic intervention across multiple parameters. Immediate action on critical areas, combined with long-term structural improvements, will establish a strong trajectory toward excellence. Leadership commitment and resource mobilization are essential for successful transformation.';
+    return 'The institution requires comprehensive strategic intervention across multiple parameters. Immediate action on critical areas, combined with long-term structural improvements, will establish a strong trajectory toward excellence.';
   }
-};
-
-// Export report as downloadable content
-export const exportReport = (report) => {
-  const content = formatReportContent(report);
-  const blob = new Blob([content], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `NIRF_Strategic_Report_${report.coverPage.subtitle.replace(/\s+/g, '_')}_${Date.now()}.txt`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
-
-const formatReportContent = (report) => {
-  return `
-═══════════════════════════════════════════════════════════════
-                    STRATEGIC IMPROVEMENT REPORT
-                    NIRF COMPASS AI ANALYSIS SYSTEM
-═══════════════════════════════════════════════════════════════
-
-Institution: ${report.coverPage.subtitle}
-Analysis Date: ${report.coverPage.date}
-Prepared By: ${report.coverPage.preparedBy}
-
-═══════════════════════════════════════════════════════════════
-                        EXECUTIVE SUMMARY
-═══════════════════════════════════════════════════════════════
-
-Overall Performance: ${report.executiveSummary.overallPerformance}
-Average Score: ${report.executiveSummary.averageScore}/100
-
-Strong Areas:
-${report.executiveSummary.strongAreas.map(a => `  • ${a}`).join('\n') || '  • None identified'}
-
-Critical Areas:
-${report.executiveSummary.criticalAreas.map(a => `  • ${a}`).join('\n') || '  • None identified'}
-
-Key Insight:
-${report.executiveSummary.keyInsight}
-
-═══════════════════════════════════════════════════════════════
-                    AUTO-GENERATED NIRF SCORES
-═══════════════════════════════════════════════════════════════
-
-${report.scores.map(s => `
-${s.name}
-  Score: ${s.score}/100
-  Performance Level: ${s.performanceLevel}
-  Assessment: ${s.assessment}
-`).join('\n')}
-
-═══════════════════════════════════════════════════════════════
-                    PARAMETER-WISE GAP ANALYSIS
-═══════════════════════════════════════════════════════════════
-
-${report.gapAnalysis.map(g => `
-${g.parameter}
-  Current Score: ${g.currentScore}/100
-  Benchmark: ${g.benchmarkScore}/100
-  Gap: ${g.gap} points (${g.gapPercentage}%)
-  Analysis: ${g.analysis}
-`).join('\n')}
-
-═══════════════════════════════════════════════════════════════
-                    DETAILED RECOMMENDATIONS
-═══════════════════════════════════════════════════════════════
-
-${report.recommendations.map(r => `
-${r.parameter}
-  Priority: ${r.priority}
-  Risk Level: ${r.riskLevel}
-  Timeline: ${r.timeline}
-  
-  Action Steps:
-${r.actions.map(a => `    • ${a}`).join('\n')}
-  
-  Expected Impact: ${r.expectedImpact}
-`).join('\n')}
-
-═══════════════════════════════════════════════════════════════
-                    STRATEGIC ROADMAP
-═══════════════════════════════════════════════════════════════
-
-PHASE 1: ${report.roadmap.phase1.title}
-Focus: ${report.roadmap.phase1.focus}
-${report.roadmap.phase1.parameters.map(p => `
-  ${p.name}:
-${p.actions.map(a => `    • ${a}`).join('\n')}`).join('\n')}
-
-PHASE 2: ${report.roadmap.phase2.title}
-Focus: ${report.roadmap.phase2.focus}
-${report.roadmap.phase2.parameters.map(p => `
-  ${p.name}:
-${p.actions.map(a => `    • ${a}`).join('\n')}`).join('\n')}
-
-PHASE 3: ${report.roadmap.phase3.title}
-Focus: ${report.roadmap.phase3.focus}
-${report.roadmap.phase3.parameters.map(p => `
-  ${p.name}:
-${p.actions.map(a => `    • ${a}`).join('\n')}`).join('\n')}
-
-═══════════════════════════════════════════════════════════════
-                        SWOT ANALYSIS
-═══════════════════════════════════════════════════════════════
-
-STRENGTHS:
-${report.swotAnalysis.strengths.map(s => `  • ${s}`).join('\n')}
-
-WEAKNESSES:
-${report.swotAnalysis.weaknesses.map(w => `  • ${w}`).join('\n')}
-
-OPPORTUNITIES:
-${report.swotAnalysis.opportunities.map(o => `  • ${o}`).join('\n')}
-
-THREATS:
-${report.swotAnalysis.threats.map(t => `  • ${t}`).join('\n')}
-
-═══════════════════════════════════════════════════════════════
-                        FINAL REMARKS
-═══════════════════════════════════════════════════════════════
-
-${report.finalRemarks}
-
-═══════════════════════════════════════════════════════════════
-                    END OF REPORT
-═══════════════════════════════════════════════════════════════
-`;
 };

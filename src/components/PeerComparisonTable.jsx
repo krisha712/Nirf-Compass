@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, BookOpen, Trophy, Zap } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { computeInsights } from '@/services/nirfService';
-import PerformanceInsights from './PerformanceInsights';
 
 const scoreColor = (v) =>
   v >= 80 ? 'text-green-600' : v >= 60 ? 'text-yellow-600' : 'text-red-500';
@@ -14,6 +12,21 @@ const SCORE_COLS = [
   { key: 'oi',  label: 'OI'  },
   { key: 'pr',  label: 'PR'  },
 ];
+
+// Default academic detail shown when expanded (backend doesn't provide this yet)
+const DEFAULT_ACADEMIC = {
+  programs: ['B.Tech', 'M.Tech', 'PhD', 'MBA', 'M.Sc'],
+  achievements: [
+    'Ranked among top institutions nationally',
+    'Strong research output and publications',
+    'Industry partnerships and placements',
+  ],
+  activities: [
+    'Annual technical and cultural festivals',
+    'Community outreach and extension programs',
+    'International collaborations and exchange programs',
+  ],
+};
 
 function Tag({ children, color = 'gray' }) {
   const colors = {
@@ -30,27 +43,26 @@ function Tag({ children, color = 'gray' }) {
 }
 
 function DetailPanel({ academic }) {
+  const data = academic || DEFAULT_ACADEMIC;
   return (
     <div className="grid md:grid-cols-3 gap-6 px-6 py-5 bg-white border-t border-blue-100">
-      {/* Programs */}
       <div>
         <div className="flex items-center gap-1.5 mb-3 text-gray-700 font-semibold text-sm">
           <BookOpen className="w-4 h-4 text-blue-500" />
           Academic Programs
         </div>
         <div className="flex flex-wrap">
-          {academic.programs.map((p) => <Tag key={p} color="blue">{p}</Tag>)}
+          {data.programs.map((p) => <Tag key={p} color="blue">{p}</Tag>)}
         </div>
       </div>
 
-      {/* Achievements */}
       <div>
         <div className="flex items-center gap-1.5 mb-3 text-gray-700 font-semibold text-sm">
           <Trophy className="w-4 h-4 text-yellow-500" />
           Major Achievements
         </div>
         <ul className="space-y-1.5">
-          {academic.achievements.map((a) => (
+          {data.achievements.map((a) => (
             <li key={a} className="flex items-start gap-1.5 text-xs text-gray-600">
               <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-yellow-400 shrink-0" />
               {a}
@@ -59,14 +71,13 @@ function DetailPanel({ academic }) {
         </ul>
       </div>
 
-      {/* Activities */}
       <div>
         <div className="flex items-center gap-1.5 mb-3 text-gray-700 font-semibold text-sm">
           <Zap className="w-4 h-4 text-purple-500" />
           Key Activities & Initiatives
         </div>
         <ul className="space-y-1.5">
-          {academic.activities.map((a) => (
+          {data.activities.map((a) => (
             <li key={a} className="flex items-start gap-1.5 text-xs text-gray-600">
               <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
               {a}
@@ -80,9 +91,10 @@ function DetailPanel({ academic }) {
 
 export default function PeerComparisonTable({ peers, selectedName }) {
   const [expanded, setExpanded] = useState(null);
-  const insights = computeInsights(peers, selectedName);
 
   const toggle = (rank) => setExpanded((prev) => (prev === rank ? null : rank));
+
+  if (!peers || peers.length === 0) return null;
 
   return (
     <section>
@@ -120,21 +132,20 @@ export default function PeerComparisonTable({ peers, selectedName }) {
         {peers.map((uni) => {
           const isSelected = uni.name === selectedName;
           const isOpen = expanded === uni.rank;
+          // overall may come as uni.overall or computed from scores
+          const overall = uni.overall ?? uni.scores?.overall ??
+            Math.round((uni.scores.tlr * 0.3 + uni.scores.rp * 0.3 + uni.scores.go * 0.2 + uni.scores.oi * 0.1 + uni.scores.pr * 0.1));
 
           return (
             <div key={uni.rank}>
-              {/* Main row */}
               <button
                 onClick={() => toggle(uni.rank)}
                 className={cn(
                   'w-full grid grid-cols-[2rem_1fr_repeat(5,4rem)_4.5rem_2rem] gap-x-4 items-center',
                   'px-5 py-4 text-left transition-colors',
-                  isSelected
-                    ? 'bg-blue-50 hover:bg-blue-100'
-                    : 'bg-white hover:bg-gray-50'
+                  isSelected ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-gray-50'
                 )}
               >
-                {/* Rank badge */}
                 <span className={cn(
                   'inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold',
                   isSelected ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
@@ -142,12 +153,8 @@ export default function PeerComparisonTable({ peers, selectedName }) {
                   {uni.rank}
                 </span>
 
-                {/* Name */}
                 <span className="flex items-center gap-2 min-w-0">
-                  <span className={cn(
-                    'font-medium text-sm truncate',
-                    isSelected ? 'text-blue-700' : 'text-gray-900'
-                  )}>
+                  <span className={cn('font-medium text-sm truncate', isSelected ? 'text-blue-700' : 'text-gray-900')}>
                     {uni.name}
                   </span>
                   {isSelected && (
@@ -157,30 +164,21 @@ export default function PeerComparisonTable({ peers, selectedName }) {
                   )}
                 </span>
 
-                {/* NIRF scores */}
                 {SCORE_COLS.map((c) => (
                   <span key={c.key} className={cn('text-center text-sm font-semibold', scoreColor(uni.scores[c.key]))}>
                     {uni.scores[c.key]}
                   </span>
                 ))}
 
-                {/* Overall */}
-                <span className={cn(
-                  'text-center text-sm font-bold',
-                  isSelected ? 'text-blue-700' : 'text-gray-800'
-                )}>
-                  {uni.overall}
+                <span className={cn('text-center text-sm font-bold', isSelected ? 'text-blue-700' : 'text-gray-800')}>
+                  {overall}
                 </span>
 
-                {/* Expand icon */}
                 <span className="flex justify-center text-gray-400">
-                  {isOpen
-                    ? <ChevronUp className="w-4 h-4" />
-                    : <ChevronDown className="w-4 h-4" />}
+                  {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </span>
               </button>
 
-              {/* Expandable detail panel */}
               {isOpen && (
                 <div className={cn(isSelected ? 'bg-blue-50/40' : 'bg-gray-50/60')}>
                   <DetailPanel academic={uni.academic} />
@@ -194,9 +192,6 @@ export default function PeerComparisonTable({ peers, selectedName }) {
       <p className="text-xs text-gray-400 mt-2 text-right">
         Showing up to 5 universities ranked above the selected institution
       </p>
-
-      {/* Performance Insights */}
-      <PerformanceInsights insights={insights} />
     </section>
   );
 }

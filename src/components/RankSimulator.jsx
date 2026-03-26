@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { TrendingUp, RotateCcw, Sliders } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { nirfRankedDataset } from '@/services/nirfService';
 
 // NIRF official weightage
 const WEIGHTS = { tlr: 0.30, rp: 0.30, go: 0.20, oi: 0.10, pr: 0.10 };
@@ -26,12 +25,38 @@ function calcOverall(s) {
   return Math.round(s.tlr * WEIGHTS.tlr + s.rp * WEIGHTS.rp + s.go * WEIGHTS.go + s.oi * WEIGHTS.oi + s.pr * WEIGHTS.pr);
 }
 
-// Estimate rank by counting how many dataset entries beat the simulated overall
-function estimateRank(overall, currentName) {
-  const beaten = nirfRankedDataset.filter(
-    (u) => u.name !== currentName && u.overall > overall
-  ).length;
-  return beaten + 1;
+/**
+ * Estimate simulated rank using real current rank + peer scores.
+ * Uses proportional interpolation: how much of the gap to the next peer is closed.
+ */
+function estimateSimulatedRank(currentRank, currentOverall, simOverall, peers) {
+  if (simOverall <= currentOverall || currentRank <= 1) return currentRank;
+
+  const scoreGain = simOverall - currentOverall;
+
+  // Sort peers by their overall descending (closest above first)
+  const peerOveralls = peers
+    .map(p => Math.round(
+      p.scores.tlr * WEIGHTS.tlr + p.scores.rp * WEIGHTS.rp +
+      p.scores.go * WEIGHTS.go + p.scores.oi * WEIGHTS.oi + p.scores.pr * WEIGHTS.pr
+    ))
+    .sort((a, b) => a - b); // ascending = closest peer first
+
+  if (peerOveralls.length === 0) {
+    // Fallback: every 2 points of overall gain = 1 rank improvement
+    return Math.max(1, currentRank - Math.floor(scoreGain / 2));
+  }
+
+  // Find the closest peer just above current score
+  const nextPeerOverall = peerOveralls[0];
+  const gapToNextPeer = Math.max(1, nextPeerOverall - currentOverall);
+
+  // How many rank positions can be gained across all peers
+  const maxRankGain = peerOveralls.length;
+  const fractionClosed = Math.min(1, scoreGain / gapToNextPeer);
+  const rankGain = Math.max(1, Math.round(fractionClosed * maxRankGain));
+
+  return Math.max(1, currentRank - rankGain);
 }
 
 // Mini horizontal bar for score comparison
@@ -115,19 +140,38 @@ function ComparisonChart({ current, simulated }) {
 }
 
 export default function RankSimulator({ analysisData }) {
-  const currentScores = analysisData.scores;
+  // Support both flat `scores` object and `parameters` array (backend shape)
+  const currentScores = useMemo(() => {
+    if (analysisData.scores) return analysisData.scores;
+    if (analysisData.parameters) {
+      return analysisData.parameters.reduce((acc, p) => ({ ...acc, [p.id]: p.score }), {});
+    }
+    return {};
+  }, [analysisData]);
   const universityName = analysisData.universityName;
+  const currentRank = analysisData.rank;
+  const peers = analysisData.peers || [];
 
-  const [sim, setSim] = useState({ ...currentScores });
+  // Initialize simulated scores with a +5 boost so comparison is visible by default
+  const [sim, setSim] = useState(() => {
+    const boosted = {};
+    for (const key in currentScores) {
+      boosted[key] = Math.min(100, currentScores[key] + 5);
+    }
+    return boosted;
+  });
 
   const currentOverall = useMemo(() => calcOverall(currentScores), [currentScores]);
   const simOverall     = useMemo(() => calcOverall(sim), [sim]);
 
-  const currentRank  = useMemo(() => estimateRank(currentOverall, universityName), [currentOverall, universityName]);
-  const simRank      = useMemo(() => estimateRank(simOverall, universityName), [simOverall, universityName]);
+  const simRank      = useMemo(() => estimateSimulatedRank(currentRank, currentOverall, simOverall, peers), [currentRank, currentOverall, simOverall, peers]);
   const rankImproved = currentRank - simRank;
 
-  const reset = () => setSim({ ...currentScores });
+  const reset = () => {
+    const boosted = {};
+    for (const key in currentScores) boosted[key] = Math.min(100, currentScores[key] + 5);
+    setSim(boosted);
+  };
 
   const changed = PARAMS.some((p) => sim[p.key] !== currentScores[p.key]);
 
