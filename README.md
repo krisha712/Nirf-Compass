@@ -48,34 +48,47 @@ NIRF Compass is a production-grade React application that provides intelligent a
 - **React Toastify** for notifications
 - **jsPDF** for PDF generation
 
-## Installation
-
-```bash
-# Install dependencies
+💻 Frontend Setup
 npm install
+npm start
 
-# Run development server
-npm run dev
+👉 Runs on: http://localhost:3000
 
-# Build for production
-npm run build
+🛠️ Backend Setup
+cd backend
+pip install -r requirements.txt
+python main.py
 
-# Preview production build
-npm run preview
+👉 Runs on: http://127.0.0.1:8000
+
+🔗 API Communication
+
+The frontend communicates with the backend using REST APIs.
+
+Example:
+
+fetch("http://127.0.0.1:8000/api/data")
+  .then(res => res.json())
+  .then(data => console.log(data));
 ```
 
 ## Project Structure
 
 ```
+## 🏗️ Project Structure
+
+```bash
 nirf-compass/
-├── src/
-│   ├── components/
-│   │   ├── layout/          # Header, Footer, MainLayout
-│   │   ├── common/          # Reusable components
+│
+├── src/                          # Frontend source code (React)
+│   ├── components/               # Reusable UI components
+│   │   ├── layout/               # Header, Footer, MainLayout
+│   │   ├── common/               # Shared components
 │   │   ├── ScoreCard.jsx
 │   │   ├── ParameterAccordion.jsx
 │   │   └── LoadingAnalysis.jsx
-│   ├── pages/
+│   │
+│   ├── pages/                    # Application pages
 │   │   ├── LandingPage.jsx
 │   │   ├── AnalysisPage.jsx
 │   │   ├── RoadmapPage.jsx
@@ -83,20 +96,37 @@ nirf-compass/
 │   │   ├── AboutPage.jsx
 │   │   ├── ContactPage.jsx
 │   │   └── SearchHistoryPage.jsx
-│   ├── services/
-│   │   ├── nirfService.js   # Score generation logic
-│   │   ├── reportService.js # Report generation
-│   │   └── pdfService.js    # PDF export
-│   ├── store/
-│   │   ├── analysisStore.js # Analysis state
-│   │   └── historyStore.js  # History with persistence
-│   ├── routes/              # React Router configuration
-│   ├── utils/               # Utility functions
-│   ├── styles/              # Global styles
+│   │
+│   ├── services/                 # Business logic
+│   │   ├── nirfService.js
+│   │   ├── reportService.js
+│   │   └── pdfService.js
+│   │
+│   ├── store/                    # State management
+│   │   ├── analysisStore.js
+│   │   └── historyStore.js
+│   │
+│   ├── routes/                   # Routing configuration
+│   ├── utils/                    # Helper functions
+│   ├── styles/                   # Global styles
+│   │
 │   ├── App.jsx
 │   └── main.jsx
-├── public/
-└── index.html
+│
+├── public/                       # Static frontend assets
+├── index.html                    # Frontend entry HTML
+│
+├── backend/                      # 🔥 Backend (Python API)
+│   ├── routes/                   # API endpoints
+│   ├── models/                   # Data models
+│   ├── data/                     # Dataset / JSON files
+│   ├── main.py                   # Backend entry point
+│   └── requirements.txt          # Backend dependencies
+│
+├── README.md                     # Main documentation
+└── .gitignore                    # Ignored files
+```
+index.html
 ```
 
 ## Usage Flow
@@ -165,6 +195,24 @@ nirf-compass/
 **Institution**: Charotar University of Science and Technology  
 **Project Type**: Academic Research Platform  
 **Year**: 2026
+
+⚠️ CORS Configuration (Important)
+
+To allow frontend and backend communication:
+
+FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+Flask
+from flask_cors import CORS
+CORS(app)
 
 ## License
 
