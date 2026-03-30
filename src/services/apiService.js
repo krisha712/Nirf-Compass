@@ -14,6 +14,22 @@ function handleUnauthorized() {
   window.location.href = '/';
 }
 
+// POST /signup
+export async function apiSignup(name, email, password) {
+  const res = await fetch(BASE + '/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || 'Signup failed');
+  }
+  const data = await res.json();
+  localStorage.setItem('nirf_token', data.token);
+  return data;
+}
+
 // POST /login
 export async function apiLogin(email, password) {
   const res = await fetch(BASE + '/login', {
