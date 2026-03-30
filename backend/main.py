@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes.login    import router as login_router
-from routes.analyze  import router as analyze_router
-from routes.history  import router as history_router
-from routes.roadmap  import router as roadmap_router
+from routes.login        import router as login_router
+from routes.signup       import router as signup_router
+from routes.analyze      import router as analyze_router
+from routes.history      import router as history_router
+from routes.roadmap      import router as roadmap_router
+from routes.google_auth  import router as google_auth_router
 
 app = FastAPI(title="NIRF Compass API", version="1.0.0")
 
@@ -18,10 +20,12 @@ app.add_middleware(
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
-app.include_router(login_router,   tags=["Auth"])
-app.include_router(analyze_router, tags=["Analysis"])
-app.include_router(history_router, tags=["History"])
-app.include_router(roadmap_router, tags=["Roadmap"])
+app.include_router(login_router,       tags=["Auth"])
+app.include_router(signup_router,      tags=["Auth"])
+app.include_router(google_auth_router, tags=["Auth"])
+app.include_router(analyze_router,     tags=["Analysis"])
+app.include_router(history_router,     tags=["History"])
+app.include_router(roadmap_router,     tags=["Roadmap"])
 
 
 @app.get("/")

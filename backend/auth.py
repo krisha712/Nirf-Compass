@@ -12,10 +12,24 @@ security = HTTPBearer()
 
 # ── Dummy user store (replace with DB later) ──────────────────────────────────
 DUMMY_USERS = {
-    "admin@nirf.com":  {"userId": "user_001", "password": "admin123",  "email": "admin@nirf.com"},
-    "test@nirf.com":   {"userId": "user_002", "password": "test123",   "email": "test@nirf.com"},
-    "demo@nirf.com":   {"userId": "user_003", "password": "demo123",   "email": "demo@nirf.com"},
+    "admin@nirf.com":  {"userId": "user_001", "password": "admin123",  "email": "admin@nirf.com", "name": "Admin"},
+    "test@nirf.com":   {"userId": "user_002", "password": "test123",   "email": "test@nirf.com",  "name": "Test User"},
+    "demo@nirf.com":   {"userId": "user_003", "password": "demo123",   "email": "demo@nirf.com",  "name": "Demo User"},
 }
+
+# In-memory signup store (persists until server restart)
+REGISTERED_USERS: dict = {}
+
+
+def register_user(email: str, password: str, name: str) -> dict:
+    """Register a new user. Raises 409 if email already exists."""
+    if email in DUMMY_USERS or email in REGISTERED_USERS:
+        raise HTTPException(status_code=409, detail="Email already registered")
+    import uuid
+    user_id = f"user_{uuid.uuid4().hex[:8]}"
+    user = {"userId": user_id, "password": password, "email": email, "name": name}
+    REGISTERED_USERS[email] = user
+    return user
 
 # ── Token helpers ─────────────────────────────────────────────────────────────
 def create_token(user_id: str, email: str) -> str:
@@ -36,7 +50,7 @@ def decode_token(token: str) -> dict:
 
 def validate_credentials(email: str, password: str) -> dict:
     """Returns user dict if credentials match, else raises 401."""
-    user = DUMMY_USERS.get(email)
+    user = DUMMY_USERS.get(email) or REGISTERED_USERS.get(email)
     if not user or user["password"] != password:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return user
