@@ -116,7 +116,7 @@ nirf-compass/
 ├── public/                       # Static frontend assets
 ├── index.html                    # Frontend entry HTML
 │
-├── backend/                      # 🔥 Backend (Python API)
+├── backend/                      # Backend (Python API)
 │   ├── routes/                   # API endpoints
 │   ├── models/                   # Data models
 │   ├── data/                     # Dataset / JSON files
